@@ -109,19 +109,29 @@ def getVolume(path, entry):
 
 # A list of file extensions for nus3bank files
 fileExtensions = (('NUS3BANK files', '*.nus3bank'), ('Backup NUS3BANK files', '*.nus3bank.bak'))
+origVol = None
 
 # Create the GUI
 sg.theme('DarkAmber')
 
-# Base layout
-layout = [ [sg.Text('Entry (put 0 if music):')],
-           [sg.Input(key='Entry', enable_events=True)],
-           [sg.Text('Select the nus3bank file:')],
-           [sg.Input(disabled=True, key='fileInput', disabled_readonly_background_color='#705e52'), sg.FileBrowse(file_types=fileExtensions, key='nus3bankFile')],
-           [sg.Button('Get old volume', key='Submit')]]
+# First layout used when getting the original volume of a nus3bank
+layout1 = [ [sg.Text('Entry (put 0 if music):')],
+            [sg.Input(key='Entry', enable_events=True)],
+            [sg.Text('Select the nus3bank file:')],
+            [sg.Input(disabled=True, key='fileInput', disabled_readonly_background_color='#705e52'), sg.FileBrowse(file_types=fileExtensions, key='nus3bankFile')]]
+
+# Second layout used when changing the volume of a nus3bank
+layout2 = [ [sg.Text('Original volume: ')],
+            [sg.Text('New volume:'), sg.Input(key='newVol')]]
+
+# Container layout used to switch between layouts
+layout = [[sg.Column(layout1, key='col1'), sg.Column(layout2, visible=False, key='col2')],
+          [sg.Button('Get old volume', key='submit')]]
 
 window = sg.Window('Nus3bank Volume GUI', layout)
 
+# Keep track of layouts
+layoutCounter = 1
 # Handle events
 while True:
     event, values = window.read()
@@ -132,13 +142,24 @@ while True:
     if event == 'Entry' and values['Entry'] and values['Entry'][-1] not in ('0123456789'):
         window['Entry'].update(values['Entry'][:-1])
     
+    # Show file path when user selects a file
     if event == 'nus3bankFile':
         window['fileInput'].update(values['nus3bankFile'])
 
-    if event == 'Submit':
-        print(f'Entry: {values["Entry"]}')
-        print(f'File: {values["nus3bankFile"]}')
-        origVol = getVolume(values['nus3bankFile'], int(values['Entry']))
-        print(origVol)
+    if event == 'submit':
+        # Get original volume
+        if layoutCounter == 1:
+            origVol = getVolume(values['nus3bankFile'], int(values['Entry']))
+            # Change layouts
+            window['col1'].update(visible=False)
+            window['col2'].update(visible=True)
+            layoutCounter = 2
+            
+        else:
+            # Change layouts
+            window['col2'].update(visible=False)
+            window['col1'].update(visible=True)
+            layoutCounter = 1
+        
 
 window.close()
