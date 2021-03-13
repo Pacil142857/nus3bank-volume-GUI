@@ -1,4 +1,17 @@
-import sys, struct
+import PySimpleGUI as sg
+import struct
+import sys
+
+# TODO: Create a GUI that selects a file and volume
+# TODO: Have GUI ask if it's a music file. If not, ask for the entry number. Must be done before asking for the file.
+# TODO: Show old volume of nus3bank
+# TODO: Make function to change/read volume of nus3bank
+
+# Upon selecting a file, the code should read the file
+## If an error occurs, deselect the file and raise an error
+# Display the old volume of the given entry
+# Ask user for new volume
+# Create the new file and save the backup
 
 class ArgumentError(Exception):
     pass
@@ -14,6 +27,7 @@ def hex_to_float(hx):
         hx = int(hx)
     return struct.unpack("<f",struct.pack("<I",hx))[0]
 
+'''
 regularInput = False
 if len(sys.argv) > 4 or len(sys.argv) == 2:
     #More than 3 command-line arguments or 1 command-line argument
@@ -83,3 +97,27 @@ except:
 finally:
     f.close()
     backup.close()
+'''
+
+# Create the GUI
+sg.theme('DarkAmber')
+
+# Base layout
+layout = [ [sg.Text('Entry (put 0 if music):')],
+           [sg.Input(key='Entry', enable_events=True)],
+           [sg.Text('Select the nus3bank file:')],
+           [sg.FileBrowse(file_types=(('NUS3BANK files', '*.nus3bank'), ('Backup NUS3BANK files', '*.nus3bank.bak')), key='nus3bank_file')]]
+
+window = sg.Window('Nus3bank Volume GUI', layout)
+
+# Handle events
+while True:
+    event, values = window.read()
+    if event in (sg.WIN_CLOSED, None):
+        break
+
+    # Validate entry to be a whole number
+    if event == 'Entry' and values['Entry'] and values['Entry'][-1] not in ('0123456789'):
+        window['Entry'].update(values['Entry'][:-1])
+
+window.close()
