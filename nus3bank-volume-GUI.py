@@ -2,8 +2,7 @@ import PySimpleGUI as sg
 import struct
 import sys
 
-# TODO: Create a GUI that selects a file and volume
-# TODO: Have GUI ask if it's a music file. If not, ask for the entry number. Must be done before asking for the file.
+# TODO: Create a GUI that asks for a file, entry, and volume
 # TODO: Show old volume of nus3bank
 # TODO: Make function to change/read volume of nus3bank
 
@@ -99,6 +98,9 @@ finally:
     backup.close()
 '''
 
+# A list of file extensions for nus3bank files
+fileExtensions = (('NUS3BANK files', '*.nus3bank'), ('Backup NUS3BANK files', '*.nus3bank.bak'))
+
 # Create the GUI
 sg.theme('DarkAmber')
 
@@ -106,9 +108,12 @@ sg.theme('DarkAmber')
 layout = [ [sg.Text('Entry (put 0 if music):')],
            [sg.Input(key='Entry', enable_events=True)],
            [sg.Text('Select the nus3bank file:')],
-           [sg.FileBrowse(file_types=(('NUS3BANK files', '*.nus3bank'), ('Backup NUS3BANK files', '*.nus3bank.bak')), key='nus3bank_file')]]
+           [sg.Input(disabled=True, key='fileInput', disabled_readonly_background_color='#705e52'), sg.FileBrowse(file_types=fileExtensions, key='nus3bankFile')],
+           [sg.Button('Get old volume', key='Submit')]]
 
 window = sg.Window('Nus3bank Volume GUI', layout)
+
+print(window['Entry'].BackgroundColor)
 
 # Handle events
 while True:
@@ -119,5 +124,13 @@ while True:
     # Validate entry to be a whole number
     if event == 'Entry' and values['Entry'] and values['Entry'][-1] not in ('0123456789'):
         window['Entry'].update(values['Entry'][:-1])
+    
+    if event == 'nus3bankFile':
+        window['fileInput'].update(values['nus3bankFile'])
+
+    if event == 'Submit':
+        print(f'Entry: {values["Entry"]}')
+        print(f'File: {values["nus3bankFile"]}')
+        # TODO: Get the volume when the user presses submit
 
 window.close()
