@@ -2,16 +2,6 @@ import PySimpleGUI as sg
 import struct
 import sys
 
-# TODO: Create a GUI that asks for a file, entry, and volume
-# TODO: Show old volume of nus3bank
-# TODO: Make function to change/read volume of nus3bank
-
-# Upon selecting a file, the code should read the file
-## If an error occurs, deselect the file and raise an error
-# Display the old volume of the given entry
-# Ask user for new volume
-# Create the new file and save the backup
-
 class ArgumentError(Exception):
     pass
 class EntryError(Exception):
@@ -174,7 +164,8 @@ origVol = None
 sg.theme('DarkAmber')
 
 # First layout used when getting the original volume of a nus3bank
-layout1 = [ [sg.Text('Entry (put 0 if music):')],
+layout1 = [ [sg.Text('The file has been saved. A backup of the file has been saved with the .nus3bank.bak extension.', visible=False, key='savedText')],
+            [sg.Text('Entry (put 0 if music):')],
             [sg.Input(key='Entry', enable_events=True)],
             [sg.Text('Select the nus3bank file:')],
             [sg.Input(disabled=True, key='fileInput', disabled_readonly_background_color='#705e52'), sg.FileBrowse(file_types=fileExtensions, key='nus3bankFile')]]
@@ -208,7 +199,7 @@ while True:
     if event == 'submit':
         # Get original volume
         if layoutCounter == 1:
-            origVol = getVolume(values['nus3bankFile'], values['Entry'])
+            origVol = getVolume(values['fileInput'], values['Entry'])
             # Change layouts
             window['col1'].update(visible=False)
             window['col2'].update(visible=True)
@@ -220,12 +211,16 @@ while True:
 
         else:
             # Change layouts
-            changeVolume(values['nus3bankFile'], values['Entry'], float(values['newVol']))
+            changeVolume(values['fileInput'], values['Entry'], float(values['newVol']))
             window['col2'].update(visible=False)
             window['col1'].update(visible=True)
 
-            # Update submit button
+            # Update submit button and tell user that the file's been saved
             window['submit'].update('Get old volume')
+            window['savedText'].update(visible=True)
+
+            # Clear values for the file
+            window['fileInput'].update('')
             layoutCounter = 1
         
 
