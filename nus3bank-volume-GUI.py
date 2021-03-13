@@ -52,8 +52,15 @@ else:
     regularInput = True
 '''
 
+key = b'\xe8\x22\x00\x00'
+
 def getVolume(path, entry):
-    key = b'\xe8\x22\x00\x00'
+    ''' Get the original volume of a nus3bank '''
+    # If an entry is not provided, assume it's 0
+    if entry == '':
+        entry = 0
+    entry = int(entry)
+
     try:
         if path[-9:] != ".nus3bank":
             raise ExtensionError
@@ -107,6 +114,58 @@ def getVolume(path, entry):
         # backup.close()
 
 
+def changeVolume(path, entry, newVolume):
+    ''' Change the volume of a nus3bank and store a backup '''
+    # If an entry is not provided, assume it's 0
+    if entry == '':
+        entry = 0
+    entry = int(entry)
+
+    try:
+        if path[-9:] != ".nus3bank":
+            raise ExtensionError
+        with open(path, "rb+") as f:
+            occurance = 0
+            content = bytearray(f.read())
+
+            backupName = path[:-9] + ".nus3bank.bak"
+            with open(backupName, "wb") as backup:
+                backup.write(content)
+
+            for i in range(len(content)):
+                if key == content[i:i+4]:
+                    occurance += 1
+                if occurance == entry + 2:
+                    break
+            else:
+                raise EntryError
+
+            oldVolume = hex_to_float(int.from_bytes(content[i+4:i+8], byteorder='little'))
+
+            # print("Changing volume of entry " + str(entry) + " from " + str(oldVolume) + " to " + str(volumeFloat) + "...")
+            
+            volume = float_to_hex(newVolume)
+            volume = volume.to_bytes(4, 'big')
+
+            # Write to the beginning and erase the end
+            content[i+4:i+8] = volume
+            f.seek(0)
+            f.write(content)
+            f.truncate(len(content))
+
+    except ArgumentError:
+        print("Incorrect number of arguments.")
+    except EntryError:
+        print("Entry number not found.")
+    except ExtensionError:
+        print("File did not end with .nus3bank.")
+    except:
+        print("An unknown error has occurred.")
+    finally:
+        f.close()
+        backup.close()
+
+
 # A list of file extensions for nus3bank files
 fileExtensions = (('NUS3BANK files', '*.nus3bank'), ('Backup NUS3BANK files', '*.nus3bank.bak'))
 origVol = None
@@ -121,7 +180,7 @@ layout1 = [ [sg.Text('Entry (put 0 if music):')],
             [sg.Input(disabled=True, key='fileInput', disabled_readonly_background_color='#705e52'), sg.FileBrowse(file_types=fileExtensions, key='nus3bankFile')]]
 
 # Second layout used when changing the volume of a nus3bank
-layout2 = [ [sg.Text('Original volume: ')],
+layout2 = [ [sg.Text('Original volume:'), sg.Text(str(origVol), key='originalVolume')],
             [sg.Text('New volume:'), sg.Input(key='newVol')]]
 
 # Container layout used to switch between layouts
@@ -149,16 +208,24 @@ while True:
     if event == 'submit':
         # Get original volume
         if layoutCounter == 1:
-            origVol = getVolume(values['nus3bankFile'], int(values['Entry']))
+            origVol = getVolume(values['nus3bankFile'], values['Entry'])
             # Change layouts
             window['col1'].update(visible=False)
             window['col2'].update(visible=True)
+
+            # Show original volume and update submit button
+            window['originalVolume'].update(str(origVol))
+            window['submit'].update('Change volume')
             layoutCounter = 2
-            
+
         else:
             # Change layouts
+            changeVolume(values['nus3bankFile'], values['Entry'], float(values['newVol']))
             window['col2'].update(visible=False)
             window['col1'].update(visible=True)
+
+            # Update submit button
+            window['submit'].update('Get old volume')
             layoutCounter = 1
         
 
