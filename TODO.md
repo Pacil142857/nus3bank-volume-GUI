@@ -6,8 +6,8 @@ This is a simple GUI made to change the volume of a nus3bank file. This should b
 - [ ] Save As button
 
 ### Improvements
-- [ ] Validate input for new volumes
 - [ ] Show an error window when an error occurs
 
 ### Completed
 - [x] Created TODO.md
+- [x] Validate input for new volumes
