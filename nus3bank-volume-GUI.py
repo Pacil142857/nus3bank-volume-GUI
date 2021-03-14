@@ -165,7 +165,7 @@ sg.theme('DarkAmber')
 
 # First layout used when getting the original volume of a nus3bank
 layout1 = [ [sg.Text('The file has been saved. A backup of the file has been saved with the .nus3bank.bak extension.', visible=False, key='savedText')],
-            [sg.Text('Entry (put 0 if music):')],
+            [sg.Text('Entry (leave blank if music):')],
             [sg.Input(key='Entry', enable_events=True)],
             [sg.Text('Select the nus3bank file:')],
             [sg.Input(disabled=True, key='fileInput', disabled_readonly_background_color='#705e52'), sg.FileBrowse(file_types=fileExtensions, key='nus3bankFile')]]
@@ -206,7 +206,7 @@ while True:
 
             # Show original volume and update submit button
             window['originalVolume'].update(str(origVol))
-            window['submit'].update('Change volume')
+            window['submit'].update('Change volume & save')
             layoutCounter = 2
 
         else:
