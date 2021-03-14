@@ -45,24 +45,27 @@ else:
 key = b'\xe8\x22\x00\x00'
 
 def getVolume(path, entry):
-    ''' Get the original volume of a nus3bank '''
+    '''Get the volume of a nus3bank file.
+
+    Parameters:
+    path (str): The path to the nus3bank file that will be changed
+    entry (int): The entry of the nus3bank. Leave blank (or use 0) for music. This can also be a string, but it must be able to convert to an int.
+    
+    Returns:
+    float: The volume of the nus3bank
+
+    '''
     # If an entry is not provided, assume it's 0
     if entry == '':
         entry = 0
-    entry = int(entry)
 
     try:
+        entry = int(entry)
         if path[-9:] != ".nus3bank":
             raise ExtensionError
         with open(path, "rb+") as f:
             occurance = 0
             content = bytearray(f.read())
-
-            ''' No need to make a backup if we're just getting the volume
-            backupName = path[:-9] + ".nus3bank.bak"
-            with open(backupName, "wb") as backup:
-                backup.write(content)
-            '''
 
             for i in range(len(content)):
                 if key == content[i:i+4]:
@@ -74,21 +77,6 @@ def getVolume(path, entry):
 
             oldVolume = hex_to_float(int.from_bytes(content[i+4:i+8], byteorder='little'))
             return oldVolume
-
-            ''' The rest of this writes to the file, so it's commented out for now
-            print("Old volume: " + str(oldVolume))
-            # print("Changing volume of entry " + str(entry) + " from " + str(oldVolume) + " to " + str(volumeFloat) + "...")
-            
-            volumeFloat = float(input("New volume (decimal and negative values are valid): "))
-            volume = float_to_hex(volumeFloat)
-            volume = volume.to_bytes(4, 'big')
-
-            # Write to the beginning and erase the end
-            content[i+4:i+8] = volume
-            f.seek(0)
-            f.write(content)
-            f.truncate(len(content))
-            '''
 
     except ArgumentError:
         print("Incorrect number of arguments.")
@@ -105,13 +93,22 @@ def getVolume(path, entry):
 
 
 def changeVolume(path, entry, newVolume):
-    ''' Change the volume of a nus3bank and store a backup '''
+    '''Change the volume of a nus3bank and store a backup of the file.
+    
+    The new file will end in ".nus3bank" while the backup will end in ".nus3bank.bak".
+
+    Parameters:
+    path (str): The path to the nus3bank file that will be changed
+    entry (int): The entry of the nus3bank. Leave blank (or use 0) for music. This can also be a string, but it must be able to convert to an int.
+    newVolume (float): The new volume for the nus3bank
+
+    '''
     # If an entry is not provided, assume it's 0
     if entry == '':
         entry = 0
-    entry = int(entry)
 
     try:
+        entry = int(entry)
         if path[-9:] != ".nus3bank":
             raise ExtensionError
         with open(path, "rb+") as f:
@@ -156,6 +153,34 @@ def changeVolume(path, entry, newVolume):
         backup.close()
 
 
+def isLastDigitNumber(num, negativeFloat=False):
+    '''Check if the last character of an input is a number.
+
+    If negativeFloat is true, also check for negative signs and decimals.
+
+    Parameters:
+    num (str): The input that gets checked
+
+    Keyword arguments:
+    negativeFloat (bool): Allow negative numbers and decimals (default False)
+
+    Returns:
+    bool: If the input is a number or not
+
+    '''
+    if not negativeFloat:
+        return num[-1] in '0123456789'
+    
+    # This is the first character, so hyphens, decimals, and numbers are allowed
+    if len(num) == 1:
+        return num[0] in '-.0123456789'
+    # There's more than 1 character, so hyphens can't be allowed now
+    if '.' not in num[:-1]:
+        return num[-1] in '.0123456789'
+    # A decimal was found, so there can't be decimals either.
+    return num[-1] in '0123456789'
+
+
 # A list of file extensions for nus3bank files
 fileExtensions = (('NUS3BANK files', '*.nus3bank'), ('Backup NUS3BANK files', '*.nus3bank.bak'))
 origVol = None
@@ -172,7 +197,7 @@ layout1 = [ [sg.Text('The file has been saved. A backup of the file has been sav
 
 # Second layout used when changing the volume of a nus3bank
 layout2 = [ [sg.Text('Original volume:'), sg.Text(str(origVol), key='originalVolume')],
-            [sg.Text('New volume:'), sg.Input(key='newVol')]]
+            [sg.Text('New volume:'), sg.Input(key='newVol', enable_events=True)]]
 
 # Container layout used to switch between layouts
 layout = [[sg.Column(layout1, key='col1'), sg.Column(layout2, visible=False, key='col2')],
@@ -189,8 +214,13 @@ while True:
         break
 
     # Validate entry to be a whole number
-    if event == 'Entry' and values['Entry'] and values['Entry'][-1] not in ('0123456789'):
+    if event == 'Entry' and values['Entry'] and not isLastDigitNumber(values['Entry']):
         window['Entry'].update(values['Entry'][:-1])
+    
+    # Validate volume to be a float
+    if event == 'newVol' and values['newVol'] and not isLastDigitNumber(values['newVol'], True):
+        window['newVol'].update(values['newVol'][:-1])
+        pass
     
     # Show file path when user selects a file
     if event == 'nus3bankFile':
@@ -210,8 +240,9 @@ while True:
             layoutCounter = 2
 
         else:
-            # Change layouts
+            # Change the volume and save
             changeVolume(values['fileInput'], values['Entry'], float(values['newVol']))
+            # Change layouts
             window['col2'].update(visible=False)
             window['col1'].update(visible=True)
 
