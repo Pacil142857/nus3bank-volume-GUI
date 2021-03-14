@@ -88,11 +88,9 @@ def getVolume(path, entry):
         print("An unknown error has occurred.")
     finally:
         f.close()
-        # Commented out since we didn't make a backup
-        # backup.close()
 
 
-def changeVolume(path, entry, newVolume):
+def changeVolume(path, entry, newVolume, newFileName=None):
     '''Change the volume of a nus3bank and store a backup of the file.
     
     The new file will end in ".nus3bank" while the backup will end in ".nus3bank.bak".
@@ -101,11 +99,16 @@ def changeVolume(path, entry, newVolume):
     path (str): The path to the nus3bank file that will be changed
     entry (int): The entry of the nus3bank. Leave blank (or use 0) for music. This can also be a string, but it must be able to convert to an int.
     newVolume (float): The new volume for the nus3bank
+    newFileName (str): The name of the file that it should be saved as. If this exists, then the new file will be saved with this name. Note that this should be the full path to the file.
 
     '''
     # If an entry is not provided, assume it's 0
     if entry == '':
         entry = 0
+    
+    # If a new file name is not provided, set it to the name of the old nus3bank
+    if not newFileName:
+        newFileName = path
 
     try:
         entry = int(entry)
@@ -128,12 +131,12 @@ def changeVolume(path, entry, newVolume):
                 raise EntryError
 
             oldVolume = hex_to_float(int.from_bytes(content[i+4:i+8], byteorder='little'))
-
-            # print("Changing volume of entry " + str(entry) + " from " + str(oldVolume) + " to " + str(volumeFloat) + "...")
             
             volume = float_to_hex(newVolume)
             volume = volume.to_bytes(4, 'big')
 
+        # Write the new file
+        with open(newFileName, 'wb+') as f:
             # Write to the beginning and erase the end
             content[i+4:i+8] = volume
             f.seek(0)
@@ -182,7 +185,7 @@ def isLastDigitNumber(num, negativeFloat=False):
 
 
 # A list of file extensions for nus3bank files
-fileExtensions = (('NUS3BANK files', '*.nus3bank'), ('Backup NUS3BANK files', '*.nus3bank.bak'))
+fileExtensions = (('NUS3BANK files', '*.nus3bank'), ('Backup NUS3BANK files', '*.nus3bank.bak'), ('All files', '*.*'))
 origVol = None
 
 # Create the GUI
@@ -199,9 +202,12 @@ layout1 = [ [sg.Text('The file has been saved. A backup of the file has been sav
 layout2 = [ [sg.Text('Original volume:'), sg.Text(str(origVol), key='originalVolume')],
             [sg.Text('New volume:'), sg.Input(key='newVol', enable_events=True)]]
 
+# A SaveAs button. It needs to be in a frame so it can turn invisible.
+saveAs = sg.Frame(title='', border_width=0, visible=False, key='saveAsFrame',
+                  layout=[[sg.SaveAs(file_types=fileExtensions, enable_events=True, key='saveAsButton')]])
 # Container layout used to switch between layouts
 layout = [[sg.Column(layout1, key='col1'), sg.Column(layout2, visible=False, key='col2')],
-          [sg.Button('Get old volume', key='submit')]]
+          [sg.Button('Get old volume', key='submit'), saveAs]]
 
 window = sg.Window('Nus3bank Volume GUI', layout)
 
@@ -214,19 +220,20 @@ while True:
         break
 
     # Validate entry to be a whole number
-    if event == 'Entry' and values['Entry'] and not isLastDigitNumber(values['Entry']):
+    elif event == 'Entry' and values['Entry'] and not isLastDigitNumber(values['Entry']):
         window['Entry'].update(values['Entry'][:-1])
     
     # Validate volume to be a float
-    if event == 'newVol' and values['newVol'] and not isLastDigitNumber(values['newVol'], True):
+    elif event == 'newVol' and values['newVol'] and not isLastDigitNumber(values['newVol'], True):
         window['newVol'].update(values['newVol'][:-1])
         pass
     
     # Show file path when user selects a file
-    if event == 'nus3bankFile':
+    elif event == 'nus3bankFile':
         window['fileInput'].update(values['nus3bankFile'])
 
-    if event == 'submit':
+
+    elif event == 'submit':
         # Get original volume
         if layoutCounter == 1:
             origVol = getVolume(values['fileInput'], values['Entry'])
@@ -234,8 +241,9 @@ while True:
             window['col1'].update(visible=False)
             window['col2'].update(visible=True)
 
-            # Show original volume and update submit button
+            # Show original volume & saveAs button and update submit button
             window['originalVolume'].update(str(origVol))
+            window['saveAsFrame'].update(visible=True)
             window['submit'].update('Change volume & save')
             layoutCounter = 2
 
@@ -250,9 +258,33 @@ while True:
             window['submit'].update('Get old volume')
             window['savedText'].update(visible=True)
 
+            # Make the Save As button invisible
+            window['saveAsFrame'].update(visible=False)
+
             # Clear values for the file
             window['fileInput'].update('')
             layoutCounter = 1
+        
+    elif event == 'saveAsButton':
+        fileName = values['saveAsButton']
+        
+        # Change the volume and save
+        changeVolume(values['fileInput'], values['Entry'], float(values['newVol']), fileName)
+
+        # Change layouts
+        window['col2'].update(visible=False)
+        window['col1'].update(visible=True)
+
+        # Update submit button and tell user that the file's been saved
+        window['submit'].update('Get old volume')
+        window['savedText'].update(visible=True)
+
+        # Make the Save As button invisible
+        window['saveAsFrame'].update(visible=False)
+
+        # Clear values for the file
+        window['fileInput'].update('')
+        layoutCounter = 1
         
 
 window.close()
