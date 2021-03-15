@@ -86,8 +86,6 @@ def getVolume(path, entry):
         print("File did not end with .nus3bank.")
     except:
         print("An unknown error has occurred.")
-    finally:
-        f.close()
 
 
 def changeVolume(path, entry, newVolume, newFileName=None):
@@ -151,9 +149,6 @@ def changeVolume(path, entry, newVolume, newFileName=None):
         print("File did not end with .nus3bank.")
     except:
         print("An unknown error has occurred.")
-    finally:
-        f.close()
-        backup.close()
 
 
 def isLastDigitNumber(num):
