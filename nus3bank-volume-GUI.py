@@ -156,24 +156,18 @@ def changeVolume(path, entry, newVolume, newFileName=None):
         backup.close()
 
 
-def isLastDigitNumber(num, negativeFloat=False):
+def isLastDigitNumber(num):
     '''Check if the last character of an input is a number.
 
-    If negativeFloat is true, also check for negative signs and decimals.
+    This also checks for negative signs and decimals, and won't allow 2 decimals or a negative sign in the wrong place.
 
     Parameters:
     num (str): The input that gets checked
-
-    Keyword arguments:
-    negativeFloat (bool): Allow negative numbers and decimals (default False)
 
     Returns:
     bool: If the input is a number or not
 
     '''
-    if not negativeFloat:
-        return num[-1] in '0123456789'
-    
     # This is the first character, so hyphens, decimals, and numbers are allowed
     if len(num) == 1:
         return num[0] in '-.0123456789'
@@ -181,7 +175,25 @@ def isLastDigitNumber(num, negativeFloat=False):
     if '.' not in num[:-1]:
         return num[-1] in '.0123456789'
     # A decimal was found, so there can't be decimals either.
-    return num[-1] in '0123456789'
+    return num[-1].isdigit()
+
+
+def toFirstPage(window):
+    '''Move from the second page to the first page'''
+    # Change layouts
+    window['col2'].update(visible=False)
+    window['col1'].update(visible=True)
+
+    # Update submit button, disable it, and tell user that the file's been saved
+    window['submit'].update('Get original volume')
+    window['submit'].update(disabled=True)
+    window['savedText'].update(visible=True)
+
+    # Make the Save As button invisible
+    window['saveAsFrame'].update(visible=False)
+
+    # Clear values for the file
+    window['fileInput'].update('')
 
 
 # A list of file extensions for nus3bank files
@@ -196,7 +208,7 @@ layout1 = [ [sg.Text('The file has been saved. A backup of the file has been sav
             [sg.Text('Entry (leave blank if music):')],
             [sg.Input(key='Entry', enable_events=True)],
             [sg.Text('Select the nus3bank file:')],
-            [sg.Input(disabled=True, key='fileInput', disabled_readonly_background_color='#705e52'), sg.FileBrowse(file_types=fileExtensions, key='nus3bankFile')]]
+            [sg.Input(disabled=True, key='fileInput', disabled_readonly_background_color='#705e52', enable_events=True), sg.FileBrowse(file_types=fileExtensions, key='nus3bankFile')]]
 
 # Second layout used when changing the volume of a nus3bank
 layout2 = [ [sg.Text('Original volume:'), sg.Text(str(origVol), key='originalVolume')],
@@ -207,7 +219,7 @@ saveAs = sg.Frame(title='', border_width=0, visible=False, key='saveAsFrame',
                   layout=[[sg.SaveAs(file_types=fileExtensions, enable_events=True, key='saveAsButton')]])
 # Container layout used to switch between layouts
 layout = [[sg.Column(layout1, key='col1'), sg.Column(layout2, visible=False, key='col2')],
-          [sg.Button('Get old volume', key='submit'), saveAs]]
+          [sg.Button('Get original volume', key='submit', disabled=True), saveAs]]
 
 window = sg.Window('Nus3bank Volume GUI', layout)
 
@@ -220,17 +232,34 @@ while True:
         break
 
     # Validate entry to be a whole number
-    elif event == 'Entry' and values['Entry'] and not isLastDigitNumber(values['Entry']):
+    elif event == 'Entry' and values['Entry'] and not values['Entry'][-1].isdigit():
         window['Entry'].update(values['Entry'][:-1])
     
-    # Validate volume to be a float
-    elif event == 'newVol' and values['newVol'] and not isLastDigitNumber(values['newVol'], True):
-        window['newVol'].update(values['newVol'][:-1])
-        pass
+
+    # Validate volume & disable save buttons until a volume is entered
+    elif event == 'newVol':
+        # Validate volume to be a float
+        if values['newVol'] and not isLastDigitNumber(values['newVol']):
+            window['newVol'].update(values['newVol'][:-1])
+    
+        # Don't allow user to save if a new volume has not been entered
+        if not any(c.isdigit() for c in values['newVol']):
+            window['submit'].update(disabled=True)
+            window['saveAsButton'].update(disabled=True)
+        else:
+            window['submit'].update(disabled=False)
+            window['saveAsButton'].update(disabled=False)
     
     # Show file path when user selects a file
     elif event == 'nus3bankFile':
         window['fileInput'].update(values['nus3bankFile'])
+
+    # Enable the "Get original volume" button if the user inputs a file
+    elif event == 'fileInput':
+        if values['fileInput']:
+            window['submit'].update(disabled=False)
+        else:
+            window['submit'].update(disabled=True)
 
 
     elif event == 'submit':
@@ -241,6 +270,13 @@ while True:
             window['col1'].update(visible=False)
             window['col2'].update(visible=True)
 
+            # Disable save buttons
+            window['submit'].update(disabled=True)
+            window['saveAsButton'].update(disabled=True)
+
+            # Clear the new volume field
+            window['newVol'].update('')
+
             # Show original volume & saveAs button and update submit button
             window['originalVolume'].update(str(origVol))
             window['saveAsFrame'].update(visible=True)
@@ -250,19 +286,10 @@ while True:
         else:
             # Change the volume and save
             changeVolume(values['fileInput'], values['Entry'], float(values['newVol']))
-            # Change layouts
-            window['col2'].update(visible=False)
-            window['col1'].update(visible=True)
 
-            # Update submit button and tell user that the file's been saved
-            window['submit'].update('Get old volume')
-            window['savedText'].update(visible=True)
+            # Go to the first page
+            toFirstPage(window)
 
-            # Make the Save As button invisible
-            window['saveAsFrame'].update(visible=False)
-
-            # Clear values for the file
-            window['fileInput'].update('')
             layoutCounter = 1
         
     elif event == 'saveAsButton':
@@ -271,19 +298,9 @@ while True:
         # Change the volume and save
         changeVolume(values['fileInput'], values['Entry'], float(values['newVol']), fileName)
 
-        # Change layouts
-        window['col2'].update(visible=False)
-        window['col1'].update(visible=True)
+        # Go to the first page
+        toFirstPage(window)
 
-        # Update submit button and tell user that the file's been saved
-        window['submit'].update('Get old volume')
-        window['savedText'].update(visible=True)
-
-        # Make the Save As button invisible
-        window['saveAsFrame'].update(visible=False)
-
-        # Clear values for the file
-        window['fileInput'].update('')
         layoutCounter = 1
         
 
