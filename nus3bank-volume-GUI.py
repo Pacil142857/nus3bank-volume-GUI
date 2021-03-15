@@ -53,6 +53,8 @@ def getVolume(path, entry):
     
     Returns:
     float: The volume of the nus3bank
+    bytearray: The content of the nus3bank
+    int: The occurance of where the new volume should go in the nus3bank
 
     '''
     # If an entry is not provided, assume it's 0
@@ -61,8 +63,11 @@ def getVolume(path, entry):
 
     try:
         entry = int(entry)
-        if path[-9:] != ".nus3bank":
+
+        # Raise ExtensionError if the file doesn't end in .nus3bank or .nus3bank.bak
+        if not (path[-9:] == ".nus3bank" or path[-13:] == '.nus3bank.bak'):
             raise ExtensionError
+
         with open(path, "rb+") as f:
             occurance = 0
             content = bytearray(f.read())
@@ -76,7 +81,7 @@ def getVolume(path, entry):
                 raise EntryError
 
             oldVolume = hex_to_float(int.from_bytes(content[i+4:i+8], byteorder='little'))
-            return oldVolume
+            return oldVolume, content, i
 
     except ArgumentError:
         print("Incorrect number of arguments.")
@@ -88,12 +93,14 @@ def getVolume(path, entry):
         print("An unknown error has occurred.")
 
 
-def changeVolume(path, entry, newVolume, newFileName=None):
+def changeVolume(content, index, path, entry, newVolume, newFileName=None):
     '''Change the volume of a nus3bank and store a backup of the file.
     
     The new file will end in ".nus3bank" while the backup will end in ".nus3bank.bak".
 
     Parameters:
+    content (bytearray): The content of the original nus3bank
+    index (int): The place where the new volume goes in the file
     path (str): The path to the nus3bank file that will be changed
     entry (int): The entry of the nus3bank. Leave blank (or use 0) for music. This can also be a string, but it must be able to convert to an int.
     newVolume (float): The new volume for the nus3bank
@@ -110,33 +117,28 @@ def changeVolume(path, entry, newVolume, newFileName=None):
 
     try:
         entry = int(entry)
-        if path[-9:] != ".nus3bank":
+
+        # Raise ExtensionError if the file doesn't end in .nus3bank or .nus3bank.bak
+        if not (path[-9:] == ".nus3bank" or path[-13:] == '.nus3bank.bak'):
             raise ExtensionError
-        with open(path, "rb+") as f:
-            occurance = 0
-            content = bytearray(f.read())
 
-            backupName = path[:-9] + ".nus3bank.bak"
-            with open(backupName, "wb") as backup:
-                backup.write(content)
+        # Change path to only end in .nus3bank for convenience
+        if path[-13:] == 'nus3bank.bak':
+            path = path[:-4]
 
-            for i in range(len(content)):
-                if key == content[i:i+4]:
-                    occurance += 1
-                if occurance == entry + 2:
-                    break
-            else:
-                raise EntryError
-
-            oldVolume = hex_to_float(int.from_bytes(content[i+4:i+8], byteorder='little'))
-            
-            volume = float_to_hex(newVolume)
-            volume = volume.to_bytes(4, 'big')
+        # Create backup
+        backupName = path[:-9] + ".nus3bank.bak"
+        with open(backupName, "wb") as backup:
+            backup.write(content)
+        
+        # Get new volume
+        volume = float_to_hex(newVolume)
+        volume = volume.to_bytes(4, 'big')
 
         # Write the new file
         with open(newFileName, 'wb+') as f:
             # Write to the beginning and erase the end
-            content[i+4:i+8] = volume
+            content[index + 4:index + 8] = volume
             f.seek(0)
             f.write(content)
             f.truncate(len(content))
@@ -260,7 +262,7 @@ while True:
     elif event == 'submit':
         # Get original volume
         if layoutCounter == 1:
-            origVol = getVolume(values['fileInput'], values['Entry'])
+            origVol, content, occurance = getVolume(values['fileInput'], values['Entry'])
             # Change layouts
             window['col1'].update(visible=False)
             window['col2'].update(visible=True)
@@ -280,7 +282,7 @@ while True:
 
         else:
             # Change the volume and save
-            changeVolume(values['fileInput'], values['Entry'], float(values['newVol']))
+            changeVolume(content, occurance, values['fileInput'], values['Entry'], float(values['newVol']))
 
             # Go to the first page
             toFirstPage(window)
@@ -291,7 +293,7 @@ while True:
         fileName = values['saveAsButton']
         
         # Change the volume and save
-        changeVolume(values['fileInput'], values['Entry'], float(values['newVol']), fileName)
+        changeVolume(content, occurance, values['fileInput'], values['Entry'], float(values['newVol']), fileName)
 
         # Go to the first page
         toFirstPage(window)
