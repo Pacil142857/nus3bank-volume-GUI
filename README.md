@@ -12,7 +12,7 @@ When you launch the application, it will ask you for an entry number and a nus3b
 
 ![The first part of the application](https://i.imgur.com/fkAf8bi.png)
 
-If you're replacing a music file, then leave the entry field blank. If you're replacing a different nus3bank file (for example, Mario's voice files), then you might find this part useful since you can control the volume of a specific voice line. As for the file, just click on "Browse" and select a file. This example shows the nus3bank for "Driver Vs." from the Xenoblade Chronicles series. Once you've selected a file (and optionally an entry), click on the "Get original volume" button.
+If you're replacing a music file, then leave the entry field blank. If you're replacing a different nus3bank file (for example, Mario's voice files), then you might find this part useful since you can control the volume of a specific voice line. As for the file, just click on "Browse" and select a nus3bank file (You can extract nus3bank files with [ArcExplorer](https://github.com/ScanMountGoat/ArcExplorer) or a similar tool). This example shows the nus3bank for "Driver Vs." from the Xenoblade Chronicles series. Once you've selected a file (and optionally an entry), click on the "Get original volume" button.
 
 ![The second part of the application](https://i.imgur.com/FVYAg64.png)
 
