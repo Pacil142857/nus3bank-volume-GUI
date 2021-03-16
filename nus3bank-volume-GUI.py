@@ -16,32 +16,6 @@ def hex_to_float(hx):
         hx = int(hx)
     return struct.unpack("<f",struct.pack("<I",hx))[0]
 
-'''
-regularInput = False
-if len(sys.argv) > 4 or len(sys.argv) == 2:
-    # More than 3 command-line arguments or 1 command-line argument
-    raise ArgumentError
-elif len(sys.argv) == 4:
-    # 3 command-line arguments
-    path = sys.argv[1]
-    entry = int(sys.argv[2])
-    volumeFloat = float(sys.argv[3])
-elif len(sys.argv) == 3:
-    # 2 command-line arguments
-    path = sys.argv[1]
-    entry = 0
-    volumeFloat = float(sys.argv[2])
-else:
-    path = input("NUS3BANK path: ")
-    path = path.replace('"', '') # Remove any quotes in input
-    entry = input("Entry (leave blank if music): ")
-    if entry == "":
-        entry = 0
-    else:
-        entry = int(entry)
-    regularInput = True
-'''
-
 key = b'\xe8\x22\x00\x00'
 
 def getVolume(path, entry):
@@ -83,14 +57,12 @@ def getVolume(path, entry):
             oldVolume = hex_to_float(int.from_bytes(content[i+4:i+8], byteorder='little'))
             return oldVolume, content, i
 
-    except ArgumentError:
-        print("Incorrect number of arguments.")
     except EntryError:
-        print("Entry number not found.")
+        sg.popup_error('Entry number not found. Terminating program.')
     except ExtensionError:
-        print("File did not end with .nus3bank.")
+        sg.popup_error('File did not end with .nus3bank or .nus3bank.bak. Terminating program.')
     except:
-        print("An unknown error has occurred.")
+        sg.popup_error('An unknown error has occurred. Terminating program.')
 
 
 def changeVolume(content, index, path, entry, newVolume, newFileName=None):
@@ -143,14 +115,12 @@ def changeVolume(content, index, path, entry, newVolume, newFileName=None):
             f.write(content)
             f.truncate(len(content))
 
-    except ArgumentError:
-        print("Incorrect number of arguments.")
     except EntryError:
-        print("Entry number not found.")
+        sg.popup_error('Entry number not found. Terminating program.')
     except ExtensionError:
-        print("File did not end with .nus3bank.")
+        sg.popup_error('File did not end with .nus3bank or .nus3bank.bak. Terminating program.')
     except:
-        print("An unknown error has occurred.")
+        sg.popup_error('An unknown error has occurred. Terminating program.')
 
 
 def isLastDigitNumber(num):
@@ -209,7 +179,7 @@ layout1 = [ [sg.Text('The file has been saved. A backup of the file has been sav
 
 # Second layout used when changing the volume of a nus3bank
 layout2 = [ [sg.Text('Original volume:'), sg.Text(str(origVol), key='originalVolume')],
-            [sg.Text('New volume:'), sg.Input(key='newVol', enable_events=True)]]
+            [sg.Text('New volume (negatives and decimals allowed):'), sg.Input(key='newVol', enable_events=True)]]
 
 # A SaveAs button. It needs to be in a frame so it can turn invisible.
 saveAs = sg.Frame(title='', border_width=0, visible=False, key='saveAsFrame',
