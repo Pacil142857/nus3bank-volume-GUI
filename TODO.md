@@ -1,5 +1,7 @@
 # Nus3bank-volume-GUI
-This is a simple GUI made to change the volume of a nus3bank file. This should be useful when modding Super Smash Bros. Ultimate.
+This program is a simple GUI made to change the volume of a nus3bank file. This should be useful when modding Super Smash Bros. Ultimate.
+
+This specific file is meant to list any features or improvements that are planned to be added eventually.
 
 ### Features
 - [ ] Batch Editing
