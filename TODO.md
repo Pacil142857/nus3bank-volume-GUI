@@ -7,6 +7,9 @@ This specific file is meant to list any features or improvements that are planne
 - [ ] Batch Editing
 - [ ] Support command-line arguments so that users can double click on a nus3bank to change the volume
 
+### Fixes
+- [ ] When you save a nus3bank.bak file, save the backup as a nus3bank.bak (not nus.nus3bank.bak)
+
 ### Completed
 - [x] Created TODO.md
 - [x] Validate input for new volumes
