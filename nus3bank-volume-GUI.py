@@ -39,10 +39,10 @@ def getVolume(path, entry):
         entry = int(entry)
 
         # Raise ExtensionError if the file doesn't end in .nus3bank or .nus3bank.bak
-        if not (path[-9:] == ".nus3bank" or path[-13:] == '.nus3bank.bak'):
+        if not (path[-9:] == '.nus3bank' or path[-13:] == '.nus3bank.bak'):
             raise ExtensionError
 
-        with open(path, "rb+") as f:
+        with open(path, 'rb+') as f:
             occurance = 0
             content = bytearray(f.read())
 
@@ -78,6 +78,9 @@ def changeVolume(content, index, path, entry, newVolume, newFileName=None):
     newVolume (float): The new volume for the nus3bank
     newFileName (str): The name of the file that it should be saved as. If this exists, then the new file will be saved with this name. Note that this should be the full path to the file.
 
+    Returns:
+    bool: True if the file being edited was a backup. False otherwise.
+
     '''
     # If an entry is not provided, assume it's 0
     if entry == '':
@@ -91,17 +94,19 @@ def changeVolume(content, index, path, entry, newVolume, newFileName=None):
         entry = int(entry)
 
         # Raise ExtensionError if the file doesn't end in .nus3bank or .nus3bank.bak
-        if not (path[-9:] == ".nus3bank" or path[-13:] == '.nus3bank.bak'):
+        if not (path[-9:] == '.nus3bank' or path[-13:] == '.nus3bank.bak'):
             raise ExtensionError
 
-        # Change path to only end in .nus3bank for convenience
-        if path[-13:] == 'nus3bank.bak':
-            path = path[:-4]
+        # Determine if the file is a backup
+        isBackup = False
+        if path[-13:] == '.nus3bank.bak':
+            isBackup = True
 
-        # Create backup
-        backupName = path[:-9] + ".nus3bank.bak"
-        with open(backupName, "wb") as backup:
-            backup.write(content)
+        # Create backup if not editing a backup
+        if not isBackup:
+            backupName = path + '.bak'
+            with open(backupName, 'wb') as backup:
+                backup.write(content)
         
         # Get new volume
         volume = float_to_hex(newVolume)
@@ -114,6 +119,8 @@ def changeVolume(content, index, path, entry, newVolume, newFileName=None):
             f.seek(0)
             f.write(content)
             f.truncate(len(content))
+        
+        return isBackup
 
     except EntryError:
         sg.popup_error('Entry number not found. Terminating program.')
@@ -145,11 +152,17 @@ def isLastDigitNumber(num):
     return num[-1].isdigit()
 
 
-def toFirstPage(window):
+def toFirstPage(window, backupSaved):
     '''Move from the second page to the first page'''
     # Change layouts
     window['col2'].update(visible=False)
     window['col1'].update(visible=True)
+
+    # Update text so that it says a backup was saved if and only if a backup was saved
+    if backupSaved:
+        window['savedText'].update('The file has been saved. A backup has not been saved.')
+    else:
+        window['savedText'].update('The file has been saved. A backup of the file has been saved with the .nus3bank.bak extension.')
 
     # Update submit button, disable it, and tell user that the file's been saved
     window['submit'].update('Get original volume')
@@ -178,6 +191,7 @@ if len(sys.argv) >= 2:
 sg.theme('DarkAmber')
 
 # First layout used when getting the original volume of a nus3bank
+# For some reason, I need to put text on the first element (savedText) or else it won't update with all of the text.
 layout1 = [ [sg.Text('The file has been saved. A backup of the file has been saved with the .nus3bank.bak extension.', visible=False, key='savedText')],
             [sg.Text('Entry (leave blank if music):')],
             [sg.Input(key='Entry', enable_events=True)],
@@ -261,21 +275,22 @@ while True:
 
         else:
             # Change the volume and save
-            changeVolume(content, occurance, values['fileInput'], values['Entry'], float(values['newVol']))
+            backupSaved = changeVolume(content, occurance, values['fileInput'], values['Entry'], float(values['newVol']))
 
             # Go to the first page
-            toFirstPage(window)
+            toFirstPage(window, backupSaved)
 
             layoutCounter = 1
-        
+
+
     elif event == 'saveAsButton':
         fileName = values['saveAsButton']
         
         # Change the volume and save
-        changeVolume(content, occurance, values['fileInput'], values['Entry'], float(values['newVol']), fileName)
+        backupSaved = changeVolume(content, occurance, values['fileInput'], values['Entry'], float(values['newVol']), fileName)
 
         # Go to the first page
-        toFirstPage(window)
+        toFirstPage(window, backupSaved)
 
         layoutCounter = 1
         
