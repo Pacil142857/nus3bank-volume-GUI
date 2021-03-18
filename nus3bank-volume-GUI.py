@@ -167,6 +167,13 @@ def toFirstPage(window):
 fileExtensions = (('NUS3BANK files', '*.nus3bank'), ('Backup NUS3BANK files', '*.nus3bank.bak'), ('All files', '*.*'))
 origVol = None
 
+# If a file has been passed as a command-line argument, fill the file field in automatically
+inputtedFile = ''
+submitDisabled = True
+if len(sys.argv) >= 2:
+    inputtedFile = sys.argv[1]
+    submitDisabled = False
+
 # Create the GUI
 sg.theme('DarkAmber')
 
@@ -175,7 +182,8 @@ layout1 = [ [sg.Text('The file has been saved. A backup of the file has been sav
             [sg.Text('Entry (leave blank if music):')],
             [sg.Input(key='Entry', enable_events=True)],
             [sg.Text('Select the nus3bank file:')],
-            [sg.Input(disabled=True, key='fileInput', disabled_readonly_background_color='#705e52', enable_events=True), sg.FileBrowse(file_types=fileExtensions, key='nus3bankFile')]]
+            [sg.Input(disabled=True, key='fileInput', disabled_readonly_background_color='#705e52', enable_events=True, default_text=inputtedFile),
+            sg.FileBrowse(file_types=fileExtensions, key='nus3bankFile')]] # This isn't an extra row, the line just got too long
 
 # Second layout used when changing the volume of a nus3bank
 layout2 = [ [sg.Text('Original volume:'), sg.Text(str(origVol), key='originalVolume')],
@@ -186,12 +194,13 @@ saveAs = sg.Frame(title='', border_width=0, visible=False, key='saveAsFrame',
                   layout=[[sg.SaveAs(file_types=fileExtensions, enable_events=True, key='saveAsButton')]])
 # Container layout used to switch between layouts
 layout = [[sg.Column(layout1, key='col1'), sg.Column(layout2, visible=False, key='col2')],
-          [sg.Button('Get original volume', key='submit', disabled=True), saveAs]]
+          [sg.Button('Get original volume', key='submit', disabled=submitDisabled), saveAs]]
 
 window = sg.Window('Nus3bank Volume GUI', layout)
 
 # Keep track of layouts
 layoutCounter = 1
+
 # Handle events
 while True:
     event, values = window.read()
