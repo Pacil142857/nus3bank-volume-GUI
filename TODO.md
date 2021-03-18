@@ -5,6 +5,7 @@ This specific file is meant to list any features or improvements that are planne
 
 ### Features
 - [ ] Batch Editing
+- [ ] Support command-line arguments so that users can double click on a nus3bank to change the volume
 
 ### Completed
 - [x] Created TODO.md
