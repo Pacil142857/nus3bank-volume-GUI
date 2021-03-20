@@ -28,7 +28,7 @@ def getVolume(path, entry):
     Returns:
     float: The volume of the nus3bank
     bytearray: The content of the nus3bank
-    int: The occurance of where the new volume should go in the nus3bank
+    # int: The occurrence of where the new volume should go in the nus3bank
 
     '''
     # If an entry is not provided, assume it's 0
@@ -43,13 +43,13 @@ def getVolume(path, entry):
             raise ExtensionError
 
         with open(path, 'rb+') as f:
-            occurance = 0
+            occurence = 0
             content = bytearray(f.read())
 
             for i in range(len(content)):
                 if key == content[i:i+4]:
-                    occurance += 1
-                if occurance == entry + 2:
+                    occurence += 1
+                if occurence == entry + 2:
                     break
             else:
                 raise EntryError
@@ -255,7 +255,7 @@ while True:
     elif event == 'submit':
         # Get original volume
         if layoutCounter == 1:
-            origVol, content, occurance = getVolume(values['fileInput'], values['Entry'])
+            origVol, content, occurence = getVolume(values['fileInput'], values['Entry'])
             # Change layouts
             window['col1'].update(visible=False)
             window['col2'].update(visible=True)
@@ -275,7 +275,7 @@ while True:
 
         else:
             # Change the volume and save
-            backupSaved = changeVolume(content, occurance, values['fileInput'], values['Entry'], float(values['newVol']))
+            backupSaved = changeVolume(content, occurence, values['fileInput'], values['Entry'], float(values['newVol']))
 
             # Go to the first page
             toFirstPage(window, backupSaved)
@@ -287,7 +287,7 @@ while True:
         fileName = values['saveAsButton']
         
         # Change the volume and save
-        backupSaved = changeVolume(content, occurance, values['fileInput'], values['Entry'], float(values['newVol']), fileName)
+        backupSaved = changeVolume(content, occurence, values['fileInput'], values['Entry'], float(values['newVol']), fileName)
 
         # Go to the first page
         toFirstPage(window, backupSaved)
