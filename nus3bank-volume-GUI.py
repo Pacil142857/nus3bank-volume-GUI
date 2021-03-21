@@ -43,13 +43,13 @@ def getVolume(path, entry):
             raise ExtensionError
 
         with open(path, 'rb+') as f:
-            occurence = 0
+            occurrence = 0
             content = bytearray(f.read())
 
             for i in range(len(content)):
                 if key == content[i:i+4]:
-                    occurence += 1
-                if occurence == entry + 2:
+                    occurrence += 1
+                if occurrence == entry + 2:
                     break
             else:
                 raise EntryError
@@ -171,6 +171,10 @@ def toFirstPage(window, backupSaved):
 
     # Make the Save As button invisible
     window['saveAsFrame'].update(visible=False)
+    window['saveAsButton'].update(disabled=True)
+    
+    # Make Batch Editing button visible
+    window['batch'].update(visible=True, disabled=False)
 
     # Clear values for the file
     window['fileInput'].update('')
@@ -203,12 +207,19 @@ layout1 = [ [sg.Text('The file has been saved. A backup of the file has been sav
 layout2 = [ [sg.Text('Original volume:'), sg.Text(str(origVol), key='originalVolume')],
             [sg.Text('New volume (negatives and decimals allowed):'), sg.Input(key='newVol', enable_events=True)]]
 
+# Layout for batch editing
+layout3 = [ [sg.Text('The files have been saved. Backups have ONLY been saved for files ending in .nus3bank.', visible=False, key='savedBatchText')],
+            [sg.Text('Select all the files you want to edit. Hold CTRL to select multiple files.')],
+            [sg.Input(disabled=True, key='batchFiles', disabled_readonly_background_color='#705e52', enable_events=True),
+             sg.FilesBrowse(file_types=fileExtensions, key='nus3bankBatchFiles', files_delimiter='<::>', enable_events=True)], # This isn't an extra row, the line just got too long
+            [sg.Text('New volume (negatives and decimals allowed):'), sg.Input(key='newBatchVol', enable_events=True, size=(10, 1))]]
+
 # A SaveAs button. It needs to be in a frame so it can turn invisible.
 saveAs = sg.Frame(title='', border_width=0, visible=False, key='saveAsFrame',
                   layout=[[sg.SaveAs(file_types=fileExtensions, enable_events=True, key='saveAsButton')]])
 # Container layout used to switch between layouts
-layout = [[sg.Column(layout1, key='col1'), sg.Column(layout2, visible=False, key='col2')],
-          [sg.Button('Get original volume', key='submit', disabled=submitDisabled), saveAs]]
+layout = [[sg.Column(layout1, key='col1'), sg.Column(layout2, visible=False, key='col2'), sg.Column(layout3, visible=False, key='col3')],
+          [sg.Button('Get original volume', key='submit', disabled=submitDisabled), saveAs, sg.Button('Batch Edit', key='batch')]]
 
 window = sg.Window('Nus3bank Volume GUI', layout)
 
@@ -240,9 +251,31 @@ while True:
             window['submit'].update(disabled=False)
             window['saveAsButton'].update(disabled=False)
     
+    # Validate volume & disable save buttons until a volume is entered
+    elif event == 'newBatchVol':
+        # Validate volume to be a float
+        if values['newBatchVol'] and not isLastDigitNumber(values['newBatchVol']):
+            window['newBatchVol'].update(values['newBatchVol'][:-1])
+    
+        # Disable save buttons if there is no file or volume
+        if not (values['nus3bankBatchFiles'] and any(c.isdigit() for c in values['newBatchVol'])):
+            window['submit'].update(disabled=True)
+            window['batch'].update(disabled=True)
+        else:
+            window['submit'].update(disabled=False)
+            window['batch'].update(disabled=False)
+
     # Show file path when user selects a file
-    elif event == 'nus3bankFile':
-        window['fileInput'].update(values['nus3bankFile'])
+    elif event == 'batchFiles':
+        window['batchFiles'].update(' | '.join(values['nus3bankBatchFiles'].split('<::>')))
+        
+        # Disable save buttons if there is no file or volume
+        if not (values['nus3bankBatchFiles'] and any(c.isdigit() for c in values['newBatchVol'])):
+            window['submit'].update(disabled=True)
+            window['batch'].update(disabled=True)
+        else:
+            window['submit'].update(disabled=False)
+            window['batch'].update(disabled=False)
 
     # Enable the "Get original volume" button if the user inputs a file
     elif event == 'fileInput':
@@ -251,14 +284,45 @@ while True:
         else:
             window['submit'].update(disabled=True)
 
+    # Go to batch editing if the user selects Batch Edit
+    elif event == 'batch':
+        
+        # Switch to batch editing page
+        if layoutCounter == 1:
+            # Switch layouts
+            window['col1'].update(visible=False)
+            window['col3'].update(visible=True)
+            
+            # Change text on buttons
+            window['batch'].update('Save and continue batch editing', disabled=True)
+            window['submit'].update('Save and go back', disabled=True)
+            
+            layoutCounter = 3
+        
+        else:
+            # Change volume of all the files
+            for file in values['nus3bankBatchFiles'].split('<::>'):
+                content, occurrence = getVolume(file, 0)[1:]
+                changeVolume(content, occurrence, file, 0, float(values['newBatchVol']))
+                
+            # Tell user the files were saved
+            window['savedBatchText'].update(visible=True)
+            
+            # Reset form fields
+            window['batchFiles'].update('')
+            window['newBatchVol'].update('')
+
 
     elif event == 'submit':
         # Get original volume
         if layoutCounter == 1:
-            origVol, content, occurence = getVolume(values['fileInput'], values['Entry'])
+            origVol, content, occurrence = getVolume(values['fileInput'], values['Entry'])
             # Change layouts
             window['col1'].update(visible=False)
             window['col2'].update(visible=True)
+
+            # Hide Batch Editing button
+            window['batch'].update(visible=False, disabled=True)
 
             # Disable save buttons
             window['submit'].update(disabled=True)
@@ -270,16 +334,46 @@ while True:
             # Show original volume & saveAs button and update submit button
             window['originalVolume'].update(str(origVol))
             window['saveAsFrame'].update(visible=True)
+            window['saveAsButton'].update(disabled=False)
             window['submit'].update('Change volume & save')
             layoutCounter = 2
-
-        else:
+        elif layoutCounter == 2:
             # Change the volume and save
-            backupSaved = changeVolume(content, occurence, values['fileInput'], values['Entry'], float(values['newVol']))
+            backupSaved = changeVolume(content, occurrence, values['fileInput'], values['Entry'], float(values['newVol']))
 
             # Go to the first page
             toFirstPage(window, backupSaved)
 
+            layoutCounter = 1
+
+        elif layoutCounter == 3:
+            # Change volume of all the files
+            for file in values['nus3bankBatchFiles'].split('<::>'):
+                content, occurrence = getVolume(file, 0)[1:]
+                changeVolume(content, occurrence, file, 0, float(values['newBatchVol']))
+        
+            # Change layouts
+            window['col3'].update(visible=False)
+            window['col1'].update(visible=True)
+
+            # Update submit button, disable it, and tell user that the file's been saved
+            window['savedText'].update('The files have been saved. Backups have ONLY been saved for files ending in .nus3bank.', visible=True)
+            window['submit'].update('Get original volume')
+            window['submit'].update(disabled=True, visible=True)
+
+            # Make the Save As button invisible
+            window['saveAsFrame'].update(visible=False)
+
+            # Clear values for the file
+            window['fileInput'].update('')
+
+            # Update text on Batch Editing button
+            window['batch'].update('Batch Edit')
+            
+            # Reset form fields
+            window['batchFiles'].update('')
+            window['newBatchVol'].update('')
+            
             layoutCounter = 1
 
 
@@ -287,7 +381,7 @@ while True:
         fileName = values['saveAsButton']
         
         # Change the volume and save
-        backupSaved = changeVolume(content, occurence, values['fileInput'], values['Entry'], float(values['newVol']), fileName)
+        backupSaved = changeVolume(content, occurrence, values['fileInput'], values['Entry'], float(values['newVol']), fileName)
 
         # Go to the first page
         toFirstPage(window, backupSaved)

@@ -1,4 +1,5 @@
 # Nus3bank-volume-GUI
+
 This is meant to be a simple GUI that can edit the volume of a nus3bank file. It should help in modding Super Smash Bros. Ultimate.
 
 This was made using PySimpleGUI, and this wouldn't be possible without the help of [zrksyd](https://github.com/zrksyd) who made the original [volume.py](https://gist.github.com/zrksyd/8e25e9ea5244714c5418d466a424107e) file, which was a CLI tool to adjust the volume of nus3bank files.
@@ -6,6 +7,7 @@ This was made using PySimpleGUI, and this wouldn't be possible without the help 
 To download this program, click [here](https://github.com/Pacil142857/nus3bank-volume-GUI/releases/latest).
 
 ## Tutorial
+
 This is a quick tutorial on how to use the program.
 
 When you launch the application, it will ask you for an entry number and a nus3bank file, like this:
@@ -21,3 +23,5 @@ Following that, you'll see a screen like this. You can see the original volume o
 Once you've done that, you have two options: quickly save the file with the same filename as before, or make a new filename. In either case, a backup of the original will be stored as "filename".nus3bank.bak (where "filename" is replaced by the filename) **if and only if** you did not change the volume of a backup file (if you edited a backup file, then a backup will not be created). Please note that if a backup was saved, it will replace any preexisting backups with the same name. If you click on "Change volume & save", the new file will be stored in the same location with the same name. If you click on "Save As...", you'll get a popup asking you where to save the file. You can choose where to save the file and you can also choose the filename. Once you click either of those buttons, you'll go back to the first page.
 
 This program can also work if you double click on a nus3bank file, but it needs a bit of setting up to do. First, find any nus3bank file in File Explorer. Right click the file, and select "Open with". Click on "More apps", scroll down, and click on "Look for another app on this PC". Locate this program and select it. After doing that, you should be able to double click on any nus3bank file to open it with this program. You can do the same thing for nus3bank.bak files, but it will affect all files ending in ".bak"—not just files ending in nus3bank.bak.
+
+You can also edit files in batch now, which is fairly straightforward. On the first page of the application, click the "Batch Edit" button. You'll then be taken to a page where you can set the volume for multiple files at once.
