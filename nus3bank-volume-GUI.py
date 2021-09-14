@@ -95,7 +95,7 @@ def changeVolume(path, entry, newVolume, newFileName=None):
             raise ExtensionError
         
         # Get new volume
-        with open(path) as f:
+        with open(path, 'rb+') as f:
             file = nus3volume.BankReader(f)
             file.set_volume(entry, newVolume)
 
@@ -184,7 +184,7 @@ layout2 = [ [sg.Text('Original volume:'), sg.Text(str(origVol), key='originalVol
             [sg.Text('New volume (negatives and decimals allowed):'), sg.Input(key='newVol', enable_events=True)]]
 
 # Layout for batch editing
-layout3 = [ [sg.Text('The files have been saved.', visible=False, key='savedBatchText')],
+layout3 = [ [sg.Text('The files were saved.', visible=False, key='savedBatchText')],
             [sg.Text('Select all the files you want to edit. Hold CTRL to select multiple files.')],
             [sg.Input(disabled=True, key='batchFiles', disabled_readonly_background_color='#705e52', enable_events=True),
              sg.FilesBrowse(file_types=fileExtensions, key='nus3bankBatchFiles', files_delimiter='<::>', enable_events=True)], # This isn't an extra row, the line just got too long
@@ -331,7 +331,7 @@ while True:
             window['col1'].update(visible=True)
 
             # Update submit button, disable it, and tell user that the file's been saved
-            window['savedText'].update('The files have been saved.', visible=True)
+            window['savedText'].update('The files were saved.', visible=True)
             window['submit'].update('Get original volume')
             window['submit'].update(disabled=True, visible=True)
 
