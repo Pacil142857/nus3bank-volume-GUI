@@ -32,7 +32,6 @@ def getVolume(path, entry):
     
     Returns:
     float: The volume of the nus3bank
-    bytearray: The content of the nus3bank
 
     '''
     # If an entry is not provided, assume it's 0
@@ -59,7 +58,7 @@ def getVolume(path, entry):
         sg.popup_error('File did not end with .nus3bank or .nus3bank.bak. Terminating program.')
     except nus3volume.InvalidMagic:
         sg.popup_error('File must be a valid NUS3Bank file. Terminating program.')
-    except Exception as e:
+    except:
         sg.popup_error('An unknown error has occurred. Terminating program.')
 
 
@@ -105,9 +104,8 @@ def changeVolume(path, entry, newVolume, newFileName=None):
         sg.popup_error('File did not end with .nus3bank or .nus3bank.bak. Terminating program.')
     except nus3volume.InvalidMagic:
         sg.popup_error('File must be a valid NUS3Bank file. Terminating program.')
-    #except Exception as e:
-    #    print(str(e))
-    #    sg.popup_error('An unknown error has occurred. Terminating program.')
+    except:
+        sg.popup_error('An unknown error has occurred. Terminating program.')
 
 
 def isLastDigitNumber(num):
