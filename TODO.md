@@ -16,6 +16,6 @@ Currently, no extra features or improvements are planned to be added. If you fou
 - [x] Don't allow user to save until a new volume exists
 - [x] Show an error window when an error occurs
 - [x] Support command-line arguments so that users can double click on a nus3bank to change the volume
-- [x] When you save a nus3bank.bak file, save the backup as a nus3bank.bak (not nus.nus3bank.bak)
 - [x] Added an icon
-- [x] Batch Editing
+- [x] Ability to edit NUS3Bank files in batch
+- [x] Fixed a bug where the a different entry could be edited than the one specified
