@@ -54,12 +54,16 @@ def getVolume(path, entry):
 
     except EntryError:
         sg.popup_error('Entry number not found. Terminating program.')
+        sys.exit()
     except ExtensionError:
         sg.popup_error('File did not end with .nus3bank or .nus3bank.bak. Terminating program.')
+        sys.exit()
     except nus3volume.InvalidMagic:
         sg.popup_error('File must be a valid NUS3Bank file. Terminating program.')
+        sys.exit()
     except:
         sg.popup_error('An unknown error has occurred. Terminating program.')
+        sys.exit()
 
 
 def changeVolume(path, entry, newVolume, newFileName=None):
@@ -100,12 +104,16 @@ def changeVolume(path, entry, newVolume, newFileName=None):
 
     except EntryError:
         sg.popup_error('Entry number not found. Terminating program.')
+        sys.exit()
     except ExtensionError:
         sg.popup_error('File did not end with .nus3bank or .nus3bank.bak. Terminating program.')
+        sys.exit()
     except nus3volume.InvalidMagic:
         sg.popup_error('File must be a valid NUS3Bank file. Terminating program.')
+        sys.exit()
     except:
         sg.popup_error('An unknown error has occurred. Terminating program.')
+        sys.exit()
 
 
 def isLastDigitNumber(num):
@@ -150,8 +158,9 @@ def toFirstPage(window):
     # Make Batch Editing button visible
     window['batch'].update(visible=True, disabled=False)
 
-    # Clear values for the file
+    # Clear values for the file and entry
     window['fileInput'].update('')
+    window['Entry'].update('')
 
 
 # A list of file extensions for nus3bank files
