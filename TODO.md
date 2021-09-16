@@ -2,11 +2,11 @@
 
 This program is a simple GUI made to change the volume of a nus3bank file. This should be useful when modding Super Smash Bros. Ultimate.
 
-This specific file is meant to list any features or improvements that are planned to be added eventually.
+This specific file is meant to list any features or improvements that are planned to be added eventually. If you found a bug, you can open an issue [here](https://github.com/Pacil142857/nus3bank-volume-GUI/issues). If you have an idea for a feature or improvement, you can open a discussion [here](https://github.com/Pacil142857/nus3bank-volume-GUI/discussions).
 
 ## Features
 
-Currently, no extra features or improvements are planned to be added. If you found a bug, you can open an issue [here](https://github.com/Pacil142857/nus3bank-volume-GUI/issues). If you have an idea for a feature or improvement, you can open a discussion [here](https://github.com/Pacil142857/nus3bank-volume-GUI/discussions).
+- [ ] Show the name of an entry after selecting it
 
 ## Completed
 
