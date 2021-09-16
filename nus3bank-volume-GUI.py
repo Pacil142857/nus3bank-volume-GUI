@@ -1,11 +1,13 @@
-# Some of this code was originally written by zrksyd in his volume.py program
+# Some of this code was originally written by zrksyd in his volume.py program and Genwald in his nus3volume.py program
 # The original volume.py program can be found here: https://gist.github.com/zrksyd/8e25e9ea5244714c5418d466a424107e
+# The original nus3volume.py program can be found here: https://gist.github.com/Genwald/d4e39d5ccc9e98266914efd1a2e4e813
 # You can check out zrksyd's Github profile page here: https://github.com/zrksyd
+# You can check out Genwald's Github profile page here: https://github.com/Genwald
 
 import nus3volume
 import PySimpleGUI as sg
-import struct
 import sys
+
 
 class ArgumentError(Exception):
     pass
@@ -14,14 +16,6 @@ class EntryError(Exception):
 class ExtensionError(Exception):
     pass
 
-def float_to_hex(f):
-    return struct.unpack('>I', struct.pack('<f', f))[0]
-def hex_to_float(hx):
-    if type(hx) == str:
-        hx = int(hx)
-    return struct.unpack("<f",struct.pack("<I",hx))[0]
-
-key = b'\xe8\x22\x00\x00'
 
 def getVolume(path, entry):
     '''Get the volume of a nus3bank file.
