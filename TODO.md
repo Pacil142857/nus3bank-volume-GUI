@@ -7,6 +7,7 @@ This specific file is meant to list any features or improvements that are planne
 ## Features
 
 - [ ] Show the name of an entry after selecting it
+- [ ] Edit all entries at once
 
 ## Completed
 
