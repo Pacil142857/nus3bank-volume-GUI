@@ -55,8 +55,8 @@ def getVolume(path, entry):
     except nus3volume.InvalidMagic:
         sg.popup_error('File must be a valid NUS3Bank file. Terminating program.')
         sys.exit()
-    except:
-        sg.popup_error('An unknown error has occurred. Terminating program.')
+    except Exception as e:
+        sg.popup_error(repr(e) + '\nTerminating program.')
         sys.exit()
 
 
@@ -105,8 +105,8 @@ def changeVolume(path, entry, newVolume, newFileName=None):
     except nus3volume.InvalidMagic:
         sg.popup_error('File must be a valid NUS3Bank file. Terminating program.')
         sys.exit()
-    except:
-        sg.popup_error('An unknown error has occurred. Terminating program.')
+    except Exception as e:
+        sg.popup_error(repr(e) + '\nTerminating program.')
         sys.exit()
 
 
@@ -192,8 +192,8 @@ layout3 = [ [sg.Text('The files were saved.', visible=False, key='savedBatchText
             [sg.Text('New volume (negatives and decimals allowed):'), sg.Input(key='newBatchVol', enable_events=True, size=(10, 1))]]
 
 # A SaveAs button. It needs to be in a frame so it can turn invisible.
-saveAs = sg.Frame(title='', border_width=0, visible=False, key='saveAsFrame',
-                  layout=[[sg.SaveAs(file_types=fileExtensions, enable_events=True, key='saveAsButton')]])
+saveAs = sg.Frame(title='', border_width=0, visible=False, key='saveAsFrame', 
+                  layout=[[sg.SaveAs(file_types=fileExtensions, enable_events=True, key='saveAsButton', disabled=True)]])
 # Container layout used to switch between layouts
 layout = [[sg.Column(layout1, key='col1'), sg.Column(layout2, visible=False, key='col2'), sg.Column(layout3, visible=False, key='col3')],
           [sg.Button('Get original volume', key='submit', disabled=submitDisabled), saveAs, sg.Button('Batch Edit', key='batch')]]
@@ -284,6 +284,10 @@ while True:
             # Tell user the files were saved
             window['savedBatchText'].update(visible=True)
             
+            # Disable save buttons
+            window['submit'].update(disabled=True)
+            window['batch'].update(disabled=True)
+            
             # Reset form fields
             window['batchFiles'].update('')
             window['newBatchVol'].update('')
@@ -310,7 +314,7 @@ while True:
             # Show original volume & saveAs button and update submit button
             window['originalVolume'].update(str(origVol))
             window['saveAsFrame'].update(visible=True)
-            window['saveAsButton'].update(disabled=False)
+            window['saveAsButton'].update(visible=True)
             window['submit'].update('Change volume & save')
             layoutCounter = 2
         elif layoutCounter == 2:
@@ -338,6 +342,7 @@ while True:
 
             # Make the Save As button invisible
             window['saveAsFrame'].update(visible=False)
+            window['saveAsButton'].update(disabled=True)
 
             # Clear values for the file
             window['fileInput'].update('')
