@@ -355,6 +355,10 @@ while True:
     elif event == 'saveAsButton':
         fileName = values['saveAsButton']
         
+        # If the user doesn't provide a file, just go back
+        if fileName == '':
+            continue
+        
         # Change the volume and save
         changeVolume(values['fileInput'], values['Entry'], float(values['newVol']), fileName)
 
