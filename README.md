@@ -14,7 +14,7 @@ When you launch the application, it will ask you for an entry number and a NUS3B
 
 ![The first part of the application](https://i.imgur.com/fkAf8bi.png)
 
-If you're replacing a music file, then leave the entry field blank. If you're replacing a Voice/SFX NUS3Bank file, then you might find this part useful since you can control the volume of a specific voice line (you can find the entry number you need using [this website](https://smashultimatetools.com/audio/nus3audio_idsp)). As for the file, just click on "Browse" and select a NUS3Bank file (You can extract NUS3Bank files with [ArcExplorer](https://github.com/ScanMountGoat/ArcExplorer) or a similar tool). This example shows the NUS3Bank for "Driver Vs." from the Xenoblade Chronicles series. Once you've selected a file (and optionally an entry), click on the "Get original volume" button.
+If you're replacing a music file, then leave the entry field blank. If you're replacing a Voice/SFX NUS3Bank file, then you might find this part useful since you can control the volume of a specific voice line (you can find the entry number you need using [this website](https://smashultimatetools.com/index.php?page=nus3audioEditor)). As for the file, just click on "Browse" and select a NUS3Bank file (You can extract NUS3Bank files with [ArcExplorer](https://github.com/ScanMountGoat/ArcExplorer) or a similar tool). This example shows the NUS3Bank for "Driver Vs." from the Xenoblade Chronicles series. Once you've selected a file (and optionally an entry), click on the "Get original volume" button.
 
 ![The second part of the application](https://i.imgur.com/FVYAg64.png)
 
