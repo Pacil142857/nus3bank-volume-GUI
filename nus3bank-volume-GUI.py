@@ -92,9 +92,16 @@ def changeVolume(path, entry, newVolume, newFileName=None):
             raise ExtensionError
         
         # Get new volume
-        with open(path, 'rb+') as f:
-            file = nus3volume.BankReader(f)
-            file.set_volume(entry, newVolume)
+        if entry == -1:
+            with open(path, 'rb+') as f:
+                file = nus3volume.BankReader(f)
+                for bankEntry in range(file.entry_count):
+                    volume = newVolume + file.get_volume(bankEntry)
+                    file.set_volume(bankEntry, volume)
+        else:
+            with open(path, 'rb+') as f:
+                file = nus3volume.BankReader(f)
+                file.set_volume(entry, newVolume)
 
     except EntryError:
         sg.popup_error('Entry number not found. Terminating program.')
@@ -196,7 +203,7 @@ saveAs = sg.Frame(title='', border_width=0, visible=False, key='saveAsFrame',
                   layout=[[sg.SaveAs(file_types=fileExtensions, enable_events=True, key='saveAsButton', disabled=True)]])
 # Container layout used to switch between layouts
 layout = [[sg.Column(layout1, key='col1'), sg.Column(layout2, visible=False, key='col2'), sg.Column(layout3, visible=False, key='col3')],
-          [sg.Button('Get original volume', key='submit', disabled=submitDisabled), saveAs, sg.Button('Batch Edit', key='batch')]]
+          [sg.Button('Get original volume', key='submit', disabled=submitDisabled), saveAs, sg.Button('Batch Edit Files', key='batch'), sg.Button('Batch Edit Entries', key='batchEntries')]]
 
 window = sg.Window('Nus3bank Volume GUI', layout)
 
@@ -371,6 +378,40 @@ while True:
         toFirstPage(window)
 
         layoutCounter = 1
+
+    elif event == 'batchEntries':
+        if layoutCounter == 1:
+            
+            origVol = getVolume(values['fileInput'], values['Entry'])
+            # Change layouts
+            window['col1'].update(visible=False)
+            window['col2'].update(visible=True)
+
+            # Hide Batch Editing button
+            window['batch'].update(visible=False, disabled=True)
+
+            # Disable save buttons
+            window['submit'].update(disabled=True)
+            window['saveAsButton'].update(disabled=True)
+
+            # Clear the new volume field
+            window['newVol'].update('')
+
+            # Show original volume & saveAs button and update submit button
+            window['originalVolume'].update(str(origVol))
+            window['saveAsFrame'].update(visible=True)
+            window['saveAsButton'].update(visible=True)
+            window['submit'].update('Volume offset & save')
+            layoutCounter = 2
+        elif layoutCounter == 2:
+            # Change the volume and save
+            changeVolume(values['fileInput'], -1, float(values['newVol']))
+
+            # Go to the first page
+            toFirstPage(window)
+
+            layoutCounter = 1
+        
         
 
 window.close()
